@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{2DACCC07-C736-40C1-946A-E1D79A0BB3A8}</ProjectGuid>
+    <RootNamespace>Desktop3D</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Allegro_AddonImage>true</Allegro_AddonImage>
+    <Allegro_AddonTTF>true</Allegro_AddonTTF>
+    <Allegro_AddonPrimitives>true</Allegro_AddonPrimitives>
+    <Allegro_AddonAudio>true</Allegro_AddonAudio>
+    <Allegro_AddonAcodec>true</Allegro_AddonAcodec>
+    <Allegro_AddonDialog>true</Allegro_AddonDialog>
+    <Allegro_AddonFont>true</Allegro_AddonFont>
+    <Allegro_AddonColor>true</Allegro_AddonColor>
+    <Allegro_AddonVideo>true</Allegro_AddonVideo>
+    <Allegro_LibraryType>
+    </Allegro_LibraryType>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level1</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Libraries\LeapSDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>C:\Libraries\LeapSDK\lib\x86\Leap.lib;Mswsock.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="LeapMotion.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Allegro5.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Audio.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Bitmap.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Color.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Display.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Input.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Lighting.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Mixer.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\NativeDialog.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Path.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Primitives.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Special\Interface.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Special\Sprite.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Text.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Timer.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Allegro5\Video.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Convert.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\DataStructures\List.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\DataStructures\RTree.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\DataStructures\SparseMatrix.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Encryptor.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\FileStream.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Math.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\MathStructures\LineSegment.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\MathStructures\MBB.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\MathStructures\Point.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\MathStructures\Polygon.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\StringSplitter.h" />
+    <ClInclude Include="LexRisLogic\include\LexRisLogic\Time.h" />
+    <ClInclude Include="Network.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="LexRisLogic\src\Allegro5\Allegro5.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Audio.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Bitmap.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Color.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Display.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Input.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Lighting.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Mixer.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\NativeDialog.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Path.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Primitives.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Special\Interface.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Special\Sprite.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Text.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Timer.cpp" />
+    <ClCompile Include="LexRisLogic\src\Allegro5\Video.cpp" />
+    <ClCompile Include="LexRisLogic\src\Convert.cpp" />
+    <ClCompile Include="LexRisLogic\src\DataStructures\List.cpp" />
+    <ClCompile Include="LexRisLogic\src\DataStructures\RTree.cpp" />
+    <ClCompile Include="LexRisLogic\src\DataStructures\SparseMatrix.cpp" />
+    <ClCompile Include="LexRisLogic\src\Encryptor.cpp" />
+    <ClCompile Include="LexRisLogic\src\FileStream.cpp" />
+    <ClCompile Include="LexRisLogic\src\Math.cpp" />
+    <ClCompile Include="LexRisLogic\src\MathStructures\LineSegment.cpp" />
+    <ClCompile Include="LexRisLogic\src\MathStructures\MBB.cpp" />
+    <ClCompile Include="LexRisLogic\src\MathStructures\Point.cpp" />
+    <ClCompile Include="LexRisLogic\src\MathStructures\Polygon.cpp" />
+    <ClCompile Include="LexRisLogic\src\StringSplitter.cpp" />
+    <ClCompile Include="LexRisLogic\src\Time.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="agency.ttf" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\AllegroDeps.1.7.0.0\build\native\AllegroDeps.targets" Condition="Exists('..\packages\AllegroDeps.1.7.0.0\build\native\AllegroDeps.targets')" />
+    <Import Project="..\packages\Allegro.5.2.4.0\build\native\Allegro.targets" Condition="Exists('..\packages\Allegro.5.2.4.0\build\native\Allegro.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauración de paquetes NuGet para descargarlos. Para obtener más información, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\AllegroDeps.1.7.0.0\build\native\AllegroDeps.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\AllegroDeps.1.7.0.0\build\native\AllegroDeps.targets'))" />
+    <Error Condition="!Exists('..\packages\Allegro.5.2.4.0\build\native\Allegro.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Allegro.5.2.4.0\build\native\Allegro.targets'))" />
+  </Target>
+</Project>
