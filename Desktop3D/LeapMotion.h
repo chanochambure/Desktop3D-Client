@@ -171,6 +171,11 @@ class LeapMotion
 		_C_Class_Listener* _V_listener=nullptr;
 		Leap::Controller _V_controller;
 	public:
+		LeapMotion()
+		{
+			_V_controller.config().setBool("tracking_processing_auto_flip", true);
+			_V_controller.setPolicy(Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD);
+		}
 		void create(LL_AL5::Input* input, LL_AL5::Font* font,float pos_x,float pos_y)
 		{
 			_F_clear();
@@ -219,14 +224,14 @@ class LeapMotion
 				{
 					for (int finger = 0; finger < NUMBER_FINGER; ++finger)
 					{
-						data.push_back(_V_pos[hand][finger].x);
-						data.push_back(_V_pos[hand][finger].y);
-						data.push_back(_V_pos[hand][finger].z);
+						data.push_back(_V_pos[hand][finger].x * -1);
+						data.push_back(_V_pos[hand][finger].z * -1);
+						data.push_back(_V_pos[hand][finger].y + 100);
 						for (int bone = 0; bone < NUMBER_BONES; ++bone)
 						{
-							data.push_back(_V_dir[hand][finger][bone].x);
+							data.push_back(_V_dir[hand][finger][bone].x * -1);
+							data.push_back(_V_dir[hand][finger][bone].z * -1);
 							data.push_back(_V_dir[hand][finger][bone].y);
-							data.push_back(_V_dir[hand][finger][bone].z);
 						}
 					}
 				}

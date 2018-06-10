@@ -7,6 +7,7 @@
 #include "LexRisLogic\include\LexRisLogic\Allegro5\Text.h"
 #include "LexRisLogic\include\LexRisLogic\Allegro5\Primitives.h"
 #include "LexRisLogic\include\LexRisLogic\Allegro5\Special\Interface.h"
+#include "LexRisLogic\include\LexRisLogic\Convert.h"
 #include "LexRisLogic\include\LexRisLogic\Time.h"
 
 #include "LeapMotion.h"
@@ -20,7 +21,7 @@ int main()
 	LL_AL5::text_addon();
 	// Temporizador
 	float time_get_connection = 0.5;
-	float time_send_package = 0.5;
+	float time_send_package = 0.09;
 	LL_AL5::Display display(800, 450);
 	{
 		display.set_title("Desktop 3D");
@@ -84,6 +85,34 @@ int main()
 		textbox_port.set_pos(150, 360);
 		textbox_port.set_value("8888");
 	}
+	LL_AL5::TextBox textbox_conn(&input);
+	{
+		textbox_conn.set_font(&agency_font);
+		textbox_conn.set_click_line_color(LL_AL5::Color(0, 255));
+		textbox_conn.set_thickness(2);
+		textbox_conn.set_text_length(10);
+		textbox_conn.textbox_on();
+		textbox_conn.set_pos(620, 340);
+		textbox_conn.set_value(LL::to_string(time_get_connection));
+	}
+	LL_AL5::TextBox textbox_send(&input);
+	{
+		textbox_send.set_font(&agency_font);
+		textbox_send.set_click_line_color(LL_AL5::Color(0, 255));
+		textbox_send.set_thickness(2);
+		textbox_send.set_text_length(10);
+		textbox_send.textbox_on();
+		textbox_send.set_pos(620, 360);
+		textbox_send.set_value(LL::to_string(time_send_package));
+	}
+	LL_AL5::Button change_button(&input);
+	{
+		change_button.set_click_fill_color(LL_AL5::Color(0, 128, 0));
+		change_button.set_pos(620, 380);
+		change_button.set_font(&agency_font);
+		change_button.set_button_text("Cambiar Tiempos");
+		change_button.button_on();
+	}
 	LL_AL5::Button server_button(&input);
 	{
 		server_button.set_click_fill_color(LL_AL5::Color(0, 128, 0));
@@ -96,7 +125,8 @@ int main()
 	LL_AL5::Text text_error_message;
 	{
 		text_error_message.set_font(&agency_font);
-		text_error_message.set_pos(150, 100);
+		text_error_message.set_pos(400, 20);
+		text_error_message.set_flag(ALLEGRO_ALIGN_CENTER);
 		text_error_message.set_color(LL_AL5::Color(255,128));
 		text_error_message = "";
 	}
@@ -113,6 +143,20 @@ int main()
 		text_port.set_pos(10, 360);
 		text_port.set_color(LL_AL5::Color(0, 0, 0));
 		text_port = "Puerto";
+	}
+	LL_AL5::Text text_conn;
+	{
+		text_conn.set_font(&agency_font);
+		text_conn.set_pos(520, 340);
+		text_conn.set_color(LL_AL5::Color(0, 0, 0));
+		text_conn = "Tiempo Conn.";
+	}
+	LL_AL5::Text text_send;
+	{
+		text_send.set_font(&agency_font);
+		text_send.set_pos(520, 360);
+		text_send.set_color(LL_AL5::Color(0, 0, 0));
+		text_send = "Tiempo Pack.";
 	}
 	// Aplicación
 	while (!input.get_display_status())
@@ -152,6 +196,28 @@ int main()
 					}
 				}
 			}
+			if (change_button.is_clicked())
+			{
+				std::string message = "";
+				float new_time_conn = LL::to_float(textbox_conn.get_value());
+				if (new_time_conn <= 0)
+				{
+					message = "Valor Ignorado Conn: " + LL::to_string(new_time_conn);
+					textbox_conn.set_value(LL::to_string(time_get_connection));
+					new_time_conn = time_get_connection;
+				}
+				float new_time_send = LL::to_float(textbox_send.get_value());
+				if (new_time_send <= 0)
+				{
+					message = "Valor Ignorado Send: " + LL::to_string(new_time_send);
+					textbox_send.set_value(LL::to_string(time_send_package));
+					new_time_send = time_send_package;
+				}
+				time_get_connection = new_time_conn;
+				time_send_package = new_time_send;
+				if (message.size())
+					text_error_message = message;
+			}
 		}
 		display.clear();
 		leap_motion.draw(&display);
@@ -161,6 +227,11 @@ int main()
 		display.draw(&textbox_ip);
 		display.draw(&textbox_port);
 		display.draw(&server_button);
+		display.draw(&text_conn);
+		display.draw(&text_send);
+		display.draw(&textbox_conn);
+		display.draw(&textbox_send);
+		display.draw(&change_button);
 		display.draw(&text_error_message);
 		display.refresh();
 	}
