@@ -19,8 +19,97 @@ const int NUMBER_HAND = 2;
 const int NUMBER_FINGER = 5;
 const int NUMBER_BONES = 4;
 
+const int LEFT_HAND = 0;
+const int RIGHT_HAND = 1;
+
+const int TOTAL_AXIS = 3;
+
 const int GESTO_VACIO = 0;
-const int GESTO_LIMPIAR_DATOS = 1;
+const int GESTO_TOMAR_FOTO = 1;
+const int GESTO_INTERACTUAR_IZQ = 2;
+const int GESTO_INTERACTUAR_DER = 3;
+const int GESTO_DEJAR_IZQ = 4;
+const int GESTO_DEJAR_DER = 5;
+const int GESTO_OPCION_COMPARTIR_IZQ = 6;
+const int GESTO_OPCION_COMPARTIR_DER = 7;
+const int GESTO_OPCION_DEJAR_COMPARTIR_IZQ = 8;
+const int GESTO_OPCION_DEJAR_COMPARTIR_DER = 9;
+const int GESTO_OPCION_ELIMINAR_IZQ = 10;
+const int GESTO_OPCION_ELIMINAR_DER = 11;
+
+class GestureDetection
+{
+	private:
+		struct _S_structure_FingerStatus
+		{
+			bool test = true;
+			Leap::Vector base_vector;
+			float limit_angle = 0.0;
+		};
+		_S_structure_FingerStatus _V_base[NUMBER_HAND][NUMBER_FINGER];
+		bool _V_remove_axis[TOTAL_AXIS];
+		bool _V_hand_enabled[NUMBER_HAND];
+	public:
+		GestureDetection(Leap::Vector base_vector, float limit_angle)
+		{
+			for(int i = 0; i < TOTAL_AXIS; ++i)
+			{
+				_V_remove_axis[i] = false;
+			}
+			set_all_base_vector(base_vector, limit_angle);
+			_V_hand_enabled[0] = true;
+			_V_hand_enabled[1] = true;
+		}
+		void set_all_base_vector(Leap::Vector base_vector, float limit_angle)
+		{
+			for (int hand = 0; hand < NUMBER_HAND; ++hand)
+			{
+				for (int finger = 0; finger < NUMBER_FINGER; ++finger)
+				{
+					_V_base[hand][finger].base_vector = base_vector;
+					_V_base[hand][finger].limit_angle = limit_angle;
+				}
+			}
+		}
+		_S_structure_FingerStatus& operator () (int hand, int finger)
+		{
+			return _V_base[hand][finger];
+		}
+		bool& operator [] (int axis)
+		{
+			return _V_remove_axis[axis];
+		}
+		void enable_hand(int hand, bool value)
+		{
+			_V_hand_enabled[hand] = value;
+		}
+		bool collision(Leap::Vector finger_direction[NUMBER_HAND][NUMBER_FINGER])
+		{
+			for (int hand = 0; hand < NUMBER_HAND; ++hand)
+			{
+				if (_V_hand_enabled[hand]) {
+					for (int finger = 0; finger < NUMBER_FINGER; ++finger)
+					{
+						_S_structure_FingerStatus& data = _V_base[hand][finger];
+						if (data.test)
+						{
+							Leap::Vector dir = finger_direction[hand][finger];
+							dir.x *= (!_V_remove_axis[0]);
+							dir.y *= (!_V_remove_axis[1]);
+							dir.z *= (!_V_remove_axis[2]);
+							float angulo_formado = LL::radian_to_sexagesimal(dir.angleTo(data.base_vector));
+							if (angulo_formado > data.limit_angle) {
+								//std::cout << "Error: H: " << hand << " F:" << finger << std::endl;
+								//std::cout << "Error: A: " << angulo_formado << " L:" << data.limit_angle << std::endl;
+								return false;
+							}
+						}
+					}
+				}
+			}
+			return true;
+		}
+};
 
 class LeapMotion
 {
@@ -44,15 +133,14 @@ class LeapMotion
 						return;
 					_V_leap_motion->_F_clear();
 					const Leap::Frame frame = controller.frame();
-					// Gesto: Limpiar Datos
-					bool gesto_limpiar_datos = frame.hands().count();
 					// Obteniendo datos del Leap Motion
+					Leap::Vector finger_direction[NUMBER_HAND][NUMBER_FINGER];
 					for (const Leap::Hand& hand : frame.hands())
 					{
 						_V_leap_motion->_V_tracked[hand.isRight()] = true;
-						int finger_id = 0;
 						for (const Leap::Finger& finger : hand.fingers())
 						{
+							int finger_id = finger.type();
 							for (int bone_id = 0; bone_id < NUMBER_BONES; ++bone_id)
 							{
 								Leap::Bone::Type type;
@@ -74,49 +162,68 @@ class LeapMotion
 								_V_leap_motion->_V_dir[hand.isRight()][finger_id][bone_id] = bone.nextJoint() - bone.prevJoint();
 							}
 							const Leap::Bone bone_meta = finger.bone(Leap::Bone::Type::TYPE_METACARPAL);
+							const Leap::Bone bone_prox = finger.bone(Leap::Bone::Type::TYPE_PROXIMAL);
+							const Leap::Bone bone_inter = finger.bone(Leap::Bone::Type::TYPE_INTERMEDIATE);
+							const Leap::Bone bone_distal = finger.bone(Leap::Bone::Type::TYPE_DISTAL);
 							_V_leap_motion->_V_pos[hand.isRight()][finger_id] = bone_meta.prevJoint();
-							++finger_id;
-							// Gesto: Limpiar Datos
-							if (gesto_limpiar_datos)
-							{
-								const Leap::Bone bone_prox = finger.bone(Leap::Bone::Type::TYPE_PROXIMAL);
-								const Leap::Bone bone_inter = finger.bone(Leap::Bone::Type::TYPE_INTERMEDIATE);
-								const Leap::Bone bone_distal = finger.bone(Leap::Bone::Type::TYPE_DISTAL);
-								Leap::Vector finger_direction = (bone_prox.direction() + bone_inter.direction() + bone_distal.direction()) / 3.0;
-								finger_direction.y = 0; // Eliminamos el eje_y para no considerar la inclinación de la mano
-								// Validación del Dedo
-								float angulo_formado = LL::radian_to_sexagesimal(finger_direction.angleTo(Leap::Vector(0, 0, 1)));
-								switch (finger.type())
-								{
-									case Leap::Finger::TYPE_THUMB:
-									{
-										gesto_limpiar_datos &= (angulo_formado > _V_leap_motion->_V_thumb_angle &&
-																angulo_formado < _V_leap_motion->_V_finger_angle + _V_leap_motion->_V_thumb_angle);
-										break;
-									}
-									case Leap::Finger::TYPE_INDEX:
-									case Leap::Finger::TYPE_MIDDLE:
-									{
-										gesto_limpiar_datos &= (angulo_formado > 0 &&
-																angulo_formado < _V_leap_motion->_V_finger_angle);
-										break;
-									}
-									default:
-									{
-										break;
-									}
-								}
-							}
+							finger_direction[hand.isRight()][finger_id] = (bone_prox.direction() + bone_inter.direction() + bone_distal.direction()) / 3.0;
 						}
 					}
-					if (gesto_limpiar_datos && _V_leap_motion->_V_tracked[0] && _V_leap_motion->_V_tracked[1])
-						_V_leap_motion->_V_gesto_actual = GESTO_LIMPIAR_DATOS;
+					if (_V_leap_motion->_V_tracked[0] && _V_leap_motion->_V_tracked[1])
+					{
+						if(_V_leap_motion->_V_gesture_take_photo_1->collision(finger_direction) || _V_leap_motion->_V_gesture_take_photo_2->collision(finger_direction))
+							_V_leap_motion->_V_gesto_actual = GESTO_TOMAR_FOTO;
+						// Mano Izquierda Apuntando
+						if (_V_leap_motion->_V_gesture_interact_left->collision(finger_direction)) {
+							_V_leap_motion->_V_gesto_actual = GESTO_INTERACTUAR_IZQ;
+							if (_V_leap_motion->_V_gesture_opcion_4_right->collision(finger_direction))
+								_V_leap_motion->_V_gesto_actual = GESTO_OPCION_COMPARTIR_DER;
+							else if (_V_leap_motion->_V_gesture_opcion_5_right->collision(finger_direction))
+								_V_leap_motion->_V_gesto_actual = GESTO_OPCION_DEJAR_COMPARTIR_DER;
+							else if (_V_leap_motion->_V_gesture_opcion_6_right->collision(finger_direction))
+								_V_leap_motion->_V_gesto_actual = GESTO_OPCION_ELIMINAR_DER;
+						}
+						// Mano Derecha Apuntando
+						else if (_V_leap_motion->_V_gesture_interact_right->collision(finger_direction)) {
+							_V_leap_motion->_V_gesto_actual = GESTO_INTERACTUAR_DER;
+							if (_V_leap_motion->_V_gesture_opcion_4_left->collision(finger_direction))
+								_V_leap_motion->_V_gesto_actual = GESTO_OPCION_COMPARTIR_IZQ;
+							else if (_V_leap_motion->_V_gesture_opcion_5_left->collision(finger_direction))
+								_V_leap_motion->_V_gesto_actual = GESTO_OPCION_DEJAR_COMPARTIR_IZQ;
+							else if (_V_leap_motion->_V_gesture_opcion_6_left->collision(finger_direction))
+								_V_leap_motion->_V_gesto_actual = GESTO_OPCION_ELIMINAR_IZQ;
+						}
+						else if (_V_leap_motion->_V_gesture_stop_left->collision(finger_direction)) {
+							_V_leap_motion->_V_gesto_actual = GESTO_DEJAR_IZQ;
+						}
+						else if (_V_leap_motion->_V_gesture_stop_right->collision(finger_direction)) {
+							_V_leap_motion->_V_gesto_actual = GESTO_DEJAR_DER;
+						}
+					}
+					else if (_V_leap_motion->_V_tracked[0])
+					{
+						if (_V_leap_motion->_V_gesture_interact_left->collision(finger_direction)) {
+							_V_leap_motion->_V_gesto_actual = GESTO_INTERACTUAR_IZQ;
+						}
+						else if (_V_leap_motion->_V_gesture_stop_left->collision(finger_direction)) {
+							_V_leap_motion->_V_gesto_actual = GESTO_DEJAR_IZQ;
+						}
+					}
+					else if (_V_leap_motion->_V_tracked[1])
+					{
+						if (_V_leap_motion->_V_gesture_interact_right->collision(finger_direction)) {
+							_V_leap_motion->_V_gesto_actual = GESTO_INTERACTUAR_DER;
+						}
+						else if (_V_leap_motion->_V_gesture_stop_right->collision(finger_direction)) {
+							_V_leap_motion->_V_gesto_actual = GESTO_DEJAR_DER;
+						}
+					}
 				}
 				virtual void onDisconnect(const Leap::Controller&)
 				{
 					_V_leap_motion->_V_leap_connected = false;
 				}
-		};;
+		};
 		bool _V_leap_connected = false;
 		LL_AL5::Button* _V_leap_motion_button = nullptr;
 		// Datos
@@ -126,9 +233,18 @@ class LeapMotion
 		Leap::Vector _V_dir[NUMBER_HAND][NUMBER_FINGER][NUMBER_BONES];
 		Leap::Vector _V_pos[NUMBER_HAND][NUMBER_FINGER];
 		// Gestos
-		// Limpiar Datos
-		int _V_thumb_angle=25;
-		int _V_finger_angle=30;
+		GestureDetection* _V_gesture_take_photo_1 = nullptr;
+		GestureDetection* _V_gesture_take_photo_2 = nullptr;
+		GestureDetection* _V_gesture_interact_left = nullptr;
+		GestureDetection* _V_gesture_interact_right = nullptr;
+		GestureDetection* _V_gesture_stop_left = nullptr;
+		GestureDetection* _V_gesture_stop_right = nullptr;
+		GestureDetection* _V_gesture_opcion_4_left = nullptr;
+		GestureDetection* _V_gesture_opcion_5_left = nullptr;
+		GestureDetection* _V_gesture_opcion_6_left = nullptr;
+		GestureDetection* _V_gesture_opcion_4_right = nullptr;
+		GestureDetection* _V_gesture_opcion_5_right = nullptr;
+		GestureDetection* _V_gesture_opcion_6_right = nullptr;
 		// Funciones
 		void _F_disable()
 		{
@@ -170,11 +286,128 @@ class LeapMotion
 		}
 		_C_Class_Listener* _V_listener=nullptr;
 		Leap::Controller _V_controller;
+		LL::Chronometer _V_timer;
 	public:
 		LeapMotion()
 		{
+			// Gestos
+			// Tomar Fotos
+			_V_gesture_take_photo_1 = new GestureDetection(Leap::Vector(0, 0, 0), 30);
+			{
+				(*_V_gesture_take_photo_1)(LEFT_HAND, Leap::Finger::TYPE_THUMB).base_vector = Leap::Vector(0.5, 0, -1);
+				(*_V_gesture_take_photo_1)(RIGHT_HAND, Leap::Finger::TYPE_THUMB).base_vector = Leap::Vector(-0.5, 0, 1);
+				(*_V_gesture_take_photo_1)(LEFT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(1, 0, 0);
+				(*_V_gesture_take_photo_1)(RIGHT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(-1, 0, 0);
+				(*_V_gesture_take_photo_1)(LEFT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_take_photo_1)(RIGHT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_take_photo_1)(LEFT_HAND, Leap::Finger::TYPE_RING).test = false;
+				(*_V_gesture_take_photo_1)(RIGHT_HAND, Leap::Finger::TYPE_RING).test = false;
+				(*_V_gesture_take_photo_1)(LEFT_HAND, Leap::Finger::TYPE_MIDDLE).test = false;
+				(*_V_gesture_take_photo_1)(RIGHT_HAND, Leap::Finger::TYPE_MIDDLE).test = false;
+				(*_V_gesture_take_photo_1)[1] = true;
+			}
+			_V_gesture_take_photo_2 = new GestureDetection(Leap::Vector(0, 0, 0), 30);
+			{
+				(*_V_gesture_take_photo_2)(LEFT_HAND, Leap::Finger::TYPE_THUMB).base_vector = Leap::Vector(0.5, 0, 1);
+				(*_V_gesture_take_photo_2)(RIGHT_HAND, Leap::Finger::TYPE_THUMB).base_vector = Leap::Vector(-0.5, 0, -1);
+				(*_V_gesture_take_photo_2)(LEFT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(1, 0, 0);
+				(*_V_gesture_take_photo_2)(RIGHT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(-1, 0, 0);
+				(*_V_gesture_take_photo_2)(LEFT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_take_photo_2)(RIGHT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_take_photo_2)(LEFT_HAND, Leap::Finger::TYPE_RING).test = false;
+				(*_V_gesture_take_photo_2)(RIGHT_HAND, Leap::Finger::TYPE_RING).test = false;
+				(*_V_gesture_take_photo_2)(LEFT_HAND, Leap::Finger::TYPE_MIDDLE).test = false;
+				(*_V_gesture_take_photo_2)(RIGHT_HAND, Leap::Finger::TYPE_MIDDLE).test = false;
+				(*_V_gesture_take_photo_2)[1] = true;
+			}
+			// Interactuar
+			_V_gesture_interact_left = new GestureDetection(Leap::Vector(0, 1, -0.75), 77);
+			{
+				(*_V_gesture_interact_left).enable_hand(1, false);
+				(*_V_gesture_interact_left)(LEFT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(0, -1, 0);
+				(*_V_gesture_interact_left)(LEFT_HAND, Leap::Finger::TYPE_INDEX).limit_angle = 90;
+				(*_V_gesture_interact_left)(LEFT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_interact_left)(LEFT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_interact_left)[2] = true;
+			}
+			_V_gesture_interact_right = new GestureDetection(Leap::Vector(0, 1, -0.75), 77);
+			{
+				(*_V_gesture_interact_right).enable_hand(0, false);
+				(*_V_gesture_interact_right)(RIGHT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(0, -1, 0);
+				(*_V_gesture_interact_right)(RIGHT_HAND, Leap::Finger::TYPE_INDEX).limit_angle = 90;
+				(*_V_gesture_interact_right)(RIGHT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_interact_right)(RIGHT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_interact_right)[2] = true;
+			}
+			//Dejar
+			_V_gesture_stop_left = new GestureDetection(Leap::Vector(0, 1, -0.75), 77);
+			{
+				(*_V_gesture_stop_left).enable_hand(1, false);
+				(*_V_gesture_stop_left)(LEFT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_stop_left)(LEFT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+			}
+			_V_gesture_stop_right = new GestureDetection(Leap::Vector(0, 1, -0.75), 77);
+			{
+				(*_V_gesture_stop_right).enable_hand(0, false);
+				(*_V_gesture_stop_right)(RIGHT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_stop_right)(RIGHT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+			}
+			//Opciones
+			//Compartir
+			_V_gesture_opcion_4_left = new GestureDetection(Leap::Vector(0, 0, -1), 35);
+			{
+				(*_V_gesture_opcion_4_left).enable_hand(1, false);
+				(*_V_gesture_opcion_4_left)(LEFT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(0, 0, 1);
+				(*_V_gesture_opcion_4_left)(LEFT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_opcion_4_left)(LEFT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_opcion_4_left)[1] = true;
+			}
+			_V_gesture_opcion_4_right = new GestureDetection(Leap::Vector(0, 0, -1), 35);
+			{
+				(*_V_gesture_opcion_4_right).enable_hand(0, false);
+				(*_V_gesture_opcion_4_right)(RIGHT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(0, 0, 1);
+				(*_V_gesture_opcion_4_right)(RIGHT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_opcion_4_right)(RIGHT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_opcion_4_right)[1] = true;
+			}
+			//Dejar de Compartir
+			_V_gesture_opcion_5_left = new GestureDetection(Leap::Vector(0, 0, -1), 35);
+			{
+				(*_V_gesture_opcion_5_left).enable_hand(1, false);
+				(*_V_gesture_opcion_5_left)(LEFT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(0, 0, 1);
+				(*_V_gesture_opcion_5_left)(LEFT_HAND, Leap::Finger::TYPE_MIDDLE).base_vector = Leap::Vector(0, 0, 1);
+				(*_V_gesture_opcion_5_left)(LEFT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_opcion_5_left)(LEFT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_opcion_5_left)[1] = true;
+			}
+			_V_gesture_opcion_5_right = new GestureDetection(Leap::Vector(0, 0, -1), 40);
+			{
+				(*_V_gesture_opcion_5_right).enable_hand(0, false);
+				(*_V_gesture_opcion_5_right)(RIGHT_HAND, Leap::Finger::TYPE_INDEX).base_vector = Leap::Vector(0, 0, 1);
+				(*_V_gesture_opcion_5_right)(RIGHT_HAND, Leap::Finger::TYPE_MIDDLE).base_vector = Leap::Vector(0, 0, 1);
+				(*_V_gesture_opcion_5_right)(RIGHT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_opcion_5_right)(RIGHT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_opcion_5_right)[1] = true;
+			}
+			//Eliminar
+			_V_gesture_opcion_6_left = new GestureDetection(Leap::Vector(0, 0, 1), 35);
+			{
+				(*_V_gesture_opcion_6_left).enable_hand(1, false);
+				(*_V_gesture_opcion_6_left)(LEFT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_opcion_6_left)(LEFT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_opcion_6_left)[1] = true;
+			}
+			_V_gesture_opcion_6_right = new GestureDetection(Leap::Vector(0, 0, 1), 35);
+			{
+				(*_V_gesture_opcion_6_right).enable_hand(0, false);
+				(*_V_gesture_opcion_6_right)(RIGHT_HAND, Leap::Finger::TYPE_THUMB).test = false;
+				(*_V_gesture_opcion_6_right)(RIGHT_HAND, Leap::Finger::TYPE_PINKY).test = false;
+				(*_V_gesture_opcion_6_right)[1] = true;
+			}
+			/**/
 			_V_controller.config().setBool("tracking_processing_auto_flip", true);
 			_V_controller.setPolicy(Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD);
+			_V_timer.stop();
 		}
 		void create(LL_AL5::Input* input, LL_AL5::Font* font,float pos_x,float pos_y)
 		{
@@ -194,6 +427,10 @@ class LeapMotion
 			else
 				_F_disable();
 			display->draw(_V_leap_motion_button);
+		}
+		int get_gesture()
+		{
+			return _V_gesto_actual;
 		}
 		void get_data(std::list<float>& data)
 		{
@@ -249,6 +486,19 @@ class LeapMotion
 			if(_V_leap_motion_button)
 				delete(_V_leap_motion_button);
 			_V_leap_motion_button = nullptr;
+			// Eliminar Gestos
+			delete(_V_gesture_take_photo_1);
+			delete(_V_gesture_take_photo_2);
+			delete(_V_gesture_interact_left);
+			delete(_V_gesture_interact_right);
+			delete(_V_gesture_stop_left);
+			delete(_V_gesture_stop_right);
+			delete(_V_gesture_opcion_4_left);
+			delete(_V_gesture_opcion_5_left);
+			delete(_V_gesture_opcion_6_left);
+			delete(_V_gesture_opcion_4_right);
+			delete(_V_gesture_opcion_5_right);
+			delete(_V_gesture_opcion_6_right);
 		}
 };
 

@@ -65,6 +65,26 @@ int main()
 		network.create_conn(&input, &agency_font, 0, 450 - agency_font.get_size()*1.25);
 	}
 	// Interfaces de Aplicación
+	LL_AL5::TextBox textbox_link(&input);
+	{
+		textbox_link.set_font(&agency_font);
+		textbox_link.set_click_line_color(LL_AL5::Color(0, 255));
+		textbox_link.set_thickness(2);
+		textbox_link.set_text_length(50);
+		textbox_link.textbox_on();
+		textbox_link.set_pos(150, 300);
+		textbox_link.set_value("http://192.168.0.56:8000/accounts/register/");
+	}
+	LL_AL5::TextBox textbox_email(&input);
+	{
+		textbox_email.set_font(&agency_font);
+		textbox_email.set_click_line_color(LL_AL5::Color(0, 255));
+		textbox_email.set_thickness(2);
+		textbox_email.set_text_length(50);
+		textbox_email.textbox_on();
+		textbox_email.set_pos(150, 320);
+		textbox_email.set_value("user@gmail.com");
+	}
 	LL_AL5::TextBox textbox_ip(&input);
 	{
 		textbox_ip.set_font(&agency_font);
@@ -74,6 +94,9 @@ int main()
 		textbox_ip.textbox_on();
 		textbox_ip.set_pos(150, 340);
 		textbox_ip.set_value("127.0.0.1");
+		auto ip_list = Network::get_ip_list();
+		if (ip_list.size())
+			textbox_ip.set_value(ip_list[0]);
 	}
 	LL_AL5::TextBox textbox_port(&input);
 	{
@@ -130,6 +153,20 @@ int main()
 		text_error_message.set_color(LL_AL5::Color(255,128));
 		text_error_message = "";
 	}
+	LL_AL5::Text text_link;
+	{
+		text_link.set_font(&agency_font);
+		text_link.set_pos(10, 300);
+		text_link.set_color(LL_AL5::Color(0, 0, 0));
+		text_link = "Enlace";
+	}
+	LL_AL5::Text text_email;
+	{
+		text_email.set_font(&agency_font);
+		text_email.set_pos(10, 320);
+		text_email.set_color(LL_AL5::Color(0, 0, 0));
+		text_email = "Email";
+	}
 	LL_AL5::Text text_ip;
 	{
 		text_ip.set_font(&agency_font);
@@ -158,6 +195,12 @@ int main()
 		text_send.set_color(LL_AL5::Color(0, 0, 0));
 		text_send = "Tiempo Pack.";
 	}
+	LL_AL5::Text text_gesture;
+	{
+		text_gesture.set_font(&agency_font);
+		text_gesture.set_pos(10, 10);
+		text_gesture.set_color(LL_AL5::Color(0, 0, 0));
+	}
 	// Aplicación
 	while (!input.get_display_status())
 	{
@@ -171,6 +214,7 @@ int main()
 			timer_send_package.clear();
 			std::list<float> data_to_send;
 			leap_motion.get_data(data_to_send);
+			text_gesture = "Gesto: " + LL::to_string(leap_motion.get_gesture());
 			network.sendListData(data_to_send);
 		}
 		if (input.get_event())
@@ -186,7 +230,7 @@ int main()
 				}
 				else
 				{
-					std::string value = network.start_server(textbox_ip.get_value(), textbox_port.get_value());
+					std::string value = network.start_server(textbox_ip.get_value(), textbox_port.get_value(), textbox_email.get_value(), textbox_link.get_value());
 					text_error_message = value;
 					if (!value.size())
 					{
@@ -222,8 +266,13 @@ int main()
 		display.clear();
 		leap_motion.draw(&display);
 		network.draw(&display);
+		display.draw(&text_gesture);
+		display.draw(&text_link);
+		display.draw(&text_email);
 		display.draw(&text_ip);
 		display.draw(&text_port);
+		display.draw(&textbox_link);
+		display.draw(&textbox_email);
 		display.draw(&textbox_ip);
 		display.draw(&textbox_port);
 		display.draw(&server_button);

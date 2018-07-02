@@ -81,6 +81,7 @@
     <Allegro_AddonVideo>true</Allegro_AddonVideo>
     <Allegro_LibraryType>
     </Allegro_LibraryType>
+    <Linkage-curl>static</Linkage-curl>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

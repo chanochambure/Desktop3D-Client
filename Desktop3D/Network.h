@@ -15,6 +15,7 @@
 #include <windows.h>
 #include <ws2tcpip.h>
 #include <process.h>
+#include <fstream>
 
 struct Network
 {
@@ -85,12 +86,33 @@ struct Network
 			disable_servidor();
 		display->draw(network_server_button);
 	}
-	std::string start_server(std::string ip, std::string port)
+	/*std::wstring string_to_wstring(std::string str)
+	{
+		int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+		std::wstring wstrTo(size_needed, 0);
+		MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+		return wstrTo;
+	}*/
+	std::string start_server(std::string ip, std::string port, std::string email, std::string server_url)
 	{
 		if (!ip.size())
 			return "Debe ingresar una IP";
 		if (!port.size())
 			return "Debe ingresar el Puerto";
+		if (!email.size())
+			return "Debe ingresar el Correo Electronico";
+		if (!server_url.size())
+			return "Debe ingresar el Enlace del Servidor";
+		std::string cmd_command = "curl --request POST --url ";
+		cmd_command += server_url;
+		cmd_command += " --header \"content-type: application/json\"";
+		cmd_command += " --data \"{\\\"username\\\":\\\"";
+		cmd_command += email;
+		cmd_command += "\\\", \\\"ip\\\":\\\"";
+		cmd_command += ip;
+		cmd_command += "\\\"}\"";
+		std::cout << cmd_command <<std::endl;
+		system(cmd_command.c_str());
 		std::stringstream streamer;
 		// create WSADATA object
 		WSADATA wsaData;
@@ -255,6 +277,32 @@ struct Network
 	{
 		if (user_connected)
 			int iResult = (recv(socket_cliente, (char*)buffer, sizeof(T), 0));
+	}
+	static std::vector<std::string> get_ip_list()
+	{
+		std::string line;
+		std::ifstream IPFile;
+		int offset;
+		char* search0 = "IPv4";      // search pattern
+
+		system("ipconfig > ip.txt");
+
+		IPFile.open("ip.txt");
+		std::vector<std::string> ip_address;
+		if (IPFile.is_open())
+		{
+			while (!IPFile.eof())
+			{
+				getline(IPFile, line);
+				if ((offset = line.find(search0, 0)) != std::string::npos)
+				{
+					offset = line.find(':');
+					ip_address.push_back(line.substr(offset+2));
+					IPFile.close();
+				}
+			}
+		}
+		return ip_address;
 	}
 	~Network()
 	{
